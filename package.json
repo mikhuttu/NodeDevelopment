@@ -1,0 +1,27 @@
+{
+  "name": "phone-dictionary-backend",
+  "version": "1.0.0",
+  "description": "Backend development with Node as part of Fullstack course offered by Helsinki university",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "watch": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikhuttu/NodeDevelopment.git"
+  },
+  "author": "Mika Huttunen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mikhuttu/NodeDevelopment/issues"
+  },
+  "homepage": "https://github.com/mikhuttu/NodeDevelopment#readme",
+  "dependencies": {
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.4"
+  }
+}
