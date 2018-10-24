@@ -1,8 +1,21 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
+const morgan = require('morgan')
+
+morgan.token('body', (req) => JSON.stringify(req.body))
+
+const formatFunction = (tokens, req, res) => [
+  tokens.method(req, res),
+  tokens.url(req, res),
+  tokens.body(req),
+  tokens.status(req, res),
+  tokens.res(req, res, 'content-length'), '-',
+  tokens['response-time'](req, res), 'ms'
+].join(' ')
 
 app.use(bodyParser.json())
+app.use(morgan(formatFunction))
 
 let people = [
   {
@@ -44,7 +57,7 @@ app.get("/info", (request, response) => {
 const peoplePath = "/api/persons"
 
 app.get(peoplePath, (request, response) => {
-  response.json(people)
+  response.json(people).status(200)
 })
 
 app.get(peoplePath + "/:id", (request, response) => {
@@ -52,7 +65,7 @@ app.get(peoplePath + "/:id", (request, response) => {
   const person = people.find(p => p.id === id)
 
   if (person) {
-    response.json(person)
+    response.json(person).status(200)
   } else {
     response.status(404).end()
   }
