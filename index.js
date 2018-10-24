@@ -18,6 +18,7 @@ const formatFunction = (tokens, req, res) => [
 app.use(bodyParser.json())
 app.use(morgan(formatFunction))
 app.use(cors())
+app.use(express.static('frontend-build'))
 
 let people = [
   {
