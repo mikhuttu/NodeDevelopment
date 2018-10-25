@@ -3,6 +3,7 @@ const app = express()
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
 
 morgan.token('body', (req) => JSON.stringify(req.body))
 
@@ -20,31 +21,18 @@ app.use(morgan(formatFunction))
 app.use(cors())
 app.use(express.static('frontend-build'))
 
-let people = [
-  {
-    "name": "Arto Hellas",
-    "number": "040-123456",
-    "id": 1
-  },
-  {
-    "name": "Martti Tienari",
-    "number": "040-123456",
-    "id": 2
-  },
-  {
-    "name": "Arto Järvinen",
-    "number": "040-123456",
-    "id": 3
-  },
-  {
-    "name": "Lea Kutvonen",
-    "number": "040-123456",
-    "id": 4
-  }
-]
+
+const port = process.env.PORT || 3001
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`)
+})
 
 app.get("/info", (request, response) => {
-  const html =
+  Person
+  .find({})
+  .then(people => {
+
+    const html =
     "<div>" +
       `puhelinluettelossa ${people.length} henkilön tiedot` +
     "</div>" +
@@ -53,59 +41,91 @@ app.get("/info", (request, response) => {
       `${new Date()}` +
     "</div>"
 
-  response.send(html)
+    response.send(html)
+  })
 })
-
 
 const peoplePath = "/api/persons"
 
 app.get(peoplePath, (request, response) => {
-  response.json(people).status(200)
+  Person
+  .find({})
+  .then(people =>
+    response
+    .status(200)
+    .json(people.map(Person.format))
+  )
 })
 
 app.get(peoplePath + "/:id", (request, response) => {
-  const id = Number(request.params.id)
-  const person = people.find(p => p.id === id)
-
-  if (person) {
-    response.json(person).status(200)
-  } else {
-    response.status(404).end()
-  }
+  Person
+  .findById(request.params.id)
+  .then(person => person ?
+      personAsJson(response, 200, person) :
+      errorAsJson(response, 404, `Person by id '${request.params.id}' not found`)
+  )
+  .catch(_ => errorAsJson(response, 400, `Malformed id '${request.params.id}' provided`))
 })
 
 app.post(peoplePath, (request, response) => {
-  const generateId = () => Math.floor((Math.random() * 10000000000))
-
   const body = request.body
-  let error;
 
-  if (people.find(p => p.name === body.name)) {
-    error = `A person with name ${body.name} already exists.`
-  } else if (body.name === undefined) {
-    error = "The person name must be provided."
-  } else if (body.number === undefined) {
-    error = "The phone number must be provided."
-  }
-
-  if (error === undefined) {
-    const person = { id: generateId(), ...body }
-    people = people.concat(person)
-
-    response.json(person)
+  if (! body.name) {
+    errorAsJson(response, 400, "The 'name' must be provided")
+  } else if (! body.number) {
+    errorAsJson(response, 400, "The 'number' must be provided")
   } else {
-    response.status(400).json({error})
+    Person
+    .findOne({'name': body.name})
+    .then(foundPerson => {
+
+      if (! foundPerson) {
+        new Person({ ...body })
+        .save()
+        .then(person => personAsJson(response, 201, person))
+      } else {
+        errorAsJson(response, 400, `A person with name '${body.name}' already exists`)
+      }
+    })
+  }
+})
+
+app.put(peoplePath + "/:id", (request, response) => {
+  const number = request.body.number
+
+  if (number) {
+    Person
+    .findById(request.params.id)
+    .then(person => {
+      if (! person) {
+        errorAsJson(response, 404, `Person by id '${request.params.id}' not found`)
+      } else {
+        const updatedPersonData = { ...person._doc, number }
+
+        Person
+          .findByIdAndUpdate(request.params.id, updatedPersonData, { new: true })
+          .then(updatedPerson => personAsJson(response, 200, updatedPerson))
+      }
+    })
+    .catch(_ => errorAsJson(response, 400, `Malformed id '${request.params.id}' provided`))
+  } else {
+    errorAsJson(response, 400, "The 'number' must be provided")
   }
 })
 
 app.delete(peoplePath + "/:id", (request, response) => {
-  const id = Number(request.params.id)
-  people = people.filter(p => p.id !== id)
-
-  response.status(204).end()
+  Person
+  .findByIdAndRemove(request.params.id)
+  .then(_ => response.status(204).end())
+  .catch(_ => errorAsJson(response, 400, `Malformed id '${request.params.id}' provided`))
 })
 
-const port = process.env.PORT || 3001
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`)
-})
+const personAsJson = (response, statusCode, person) => {
+  response.status(statusCode).json(Person.format(person))
+}
+
+const errorAsJson = (response, statusCode, errorMsg) => {
+  errorMsg ?
+    response.status(statusCode).json({'error': errorMsg}) :
+    response.status(statusCode)
+}
