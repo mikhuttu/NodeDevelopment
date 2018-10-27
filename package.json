@@ -1,0 +1,31 @@
+{
+  "name": "blog-list",
+  "version": "1.0.0",
+  "description": "Backend development with Node as part of Fullstack course offered by Helsinki university",
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.4",
+    "dotenv": "^6.1.0",
+    "express": "^4.16.4",
+    "mongoose": "^5.3.6"
+  },
+  "devDependencies": {
+    "eslint": "^5.8.0",
+    "nodemon": "^1.18.4"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "watch": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikhuttu/NodeDevelopment.git"
+  },
+  "author": "Mika Huttunen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mikhuttu/NodeDevelopment/issues"
+  },
+  "homepage": "https://github.com/mikhuttu/NodeDevelopment#readme"
+}
