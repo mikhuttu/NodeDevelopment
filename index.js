@@ -23,9 +23,7 @@ app.use(express.static('frontend-build'))
 
 
 const port = process.env.PORT || 3001
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`)
-})
+app.listen(port, () => console.log(`Server running on port ${port}`))
 
 app.get("/info", (request, response) => {
   Person
