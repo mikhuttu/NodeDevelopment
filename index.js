@@ -1,32 +1,39 @@
+const http = require('http')
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const mongoose = require('mongoose')
+const config = require('./utils/config')
 
 app.use(cors())
 app.use(bodyParser.json())
 
-if ( process.env.NODE_ENV !== 'production' ) {
-  require('dotenv').config()
-}
-
 app.use('/api/blogs', require('./controllers/blogs'))
+
+const server = http.createServer(app)
 
 const startApplication = () => {
   const connectDatabase = () => {
-    const mongoUrl = process.env.BLOGLIST_MONGODB_URL
-    mongoose.connect(mongoUrl)
+    mongoose
+      .connect(config.dbUrl)
+      .catch(e => console.log(e))
   }
 
   const listenPort = port => {
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`Server running on port ${port}`)
     })
   }
 
   connectDatabase()
-  listenPort(3000)
+  listenPort(config.port)
 }
 
 startApplication()
+
+server.on('close', () => mongoose.connection.close())
+
+module.exports = {
+  app, server
+}
