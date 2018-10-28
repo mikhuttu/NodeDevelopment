@@ -6,6 +6,8 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const config = require('./utils/config')
 
+//mongoose.Promise = global.Promise
+
 app.use(cors())
 app.use(bodyParser.json())
 
